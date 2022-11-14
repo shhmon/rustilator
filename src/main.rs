@@ -67,16 +67,62 @@ impl Source for WaveTableOscillator {
     }
 }
 
-fn main() {
-    let wave_table_size = 64;
-    let mut wave_table = Vec::with_capacity(wave_table_size);
+fn sine(size: usize) -> Vec<f32> {
+    let mut wave_table = Vec::with_capacity(size);
 
-    for n in 0..wave_table_size {
-        wave_table.push((2.0 * std::f32::consts::PI * n as f32 / wave_table_size as f32).sin())
+    for n in 0..size {
+        let phase = 2.0 * std::f32::consts::PI * n as f32 / size as f32;
+        wave_table.push((phase).sin());
     }
 
+    return wave_table;
+}
+
+fn square(size: usize) -> Vec<f32> {
+    let mut wave_table = Vec::with_capacity(size);
+
+    for n in 0..size {
+        let phase = 2.0 * std::f32::consts::PI * n as f32 / size as f32;
+        wave_table.push(if phase < std::f32::consts::PI { 1 } else { -1 } as f32)
+    }
+
+    return wave_table;
+}
+
+fn triangle(size: usize) -> Vec<f32> {
+    let mut wave_table = Vec::with_capacity(size);
+
+    for n in 0..size {
+        let twopi = 2.0 * std::f32::consts::PI;
+        let phase = twopi * n as f32 / size as f32;
+        let val = 2.0 * (phase * (1.0 / twopi)) - 1.0;
+
+        wave_table.push(if val < 0.0 { -val } else { 2.0 * (val - 0.5) } as f32)
+    }
+
+    return wave_table;
+}
+
+fn sawtooth(size: usize) -> Vec<f32> {
+    let mut wave_table = Vec::with_capacity(size);
+
+    for n in 0..size {
+        let twopi = 2.0 * std::f32::consts::PI;
+        let phase = twopi * n as f32 / size as f32;
+
+        wave_table.push(2.0 * (phase * (1.0 / twopi)) - 1.0 as f32)
+    }
+
+    return wave_table;
+}
+
+fn main() {
+    let wave_table_size = 64;
+
+    let wave_table = sawtooth(wave_table_size);
+
     let mut osc = WaveTableOscillator::new(44100, wave_table);
-    osc.set_frequency(400.0);
+    osc.set_frequency(80.0);
 
     let (_stream, stream_handle) = OutputStream::try_default().unwrap();
     let _result = stream_handle.play_raw(osc.convert_samples());
