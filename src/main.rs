@@ -1,6 +1,8 @@
 use rodio::{OutputStream, Source};
 use std::time::Duration;
 
+mod waves;
+
 struct WaveTableOscillator {
     sample_rate: u32,
     wave_table: Vec<f32>,
@@ -67,59 +69,10 @@ impl Source for WaveTableOscillator {
     }
 }
 
-fn sine(size: usize) -> Vec<f32> {
-    let mut wave_table = Vec::with_capacity(size);
-
-    for n in 0..size {
-        let phase = 2.0 * std::f32::consts::PI * n as f32 / size as f32;
-        wave_table.push((phase).sin());
-    }
-
-    return wave_table;
-}
-
-fn square(size: usize) -> Vec<f32> {
-    let mut wave_table = Vec::with_capacity(size);
-
-    for n in 0..size {
-        let phase = 2.0 * std::f32::consts::PI * n as f32 / size as f32;
-        wave_table.push(if phase < std::f32::consts::PI { 1 } else { -1 } as f32)
-    }
-
-    return wave_table;
-}
-
-fn triangle(size: usize) -> Vec<f32> {
-    let mut wave_table = Vec::with_capacity(size);
-
-    for n in 0..size {
-        let twopi = 2.0 * std::f32::consts::PI;
-        let phase = twopi * n as f32 / size as f32;
-        let val = 2.0 * (phase * (1.0 / twopi)) - 1.0;
-
-        wave_table.push(if val < 0.0 { -val } else { 2.0 * (val - 0.5) } as f32)
-    }
-
-    return wave_table;
-}
-
-fn sawtooth(size: usize) -> Vec<f32> {
-    let mut wave_table = Vec::with_capacity(size);
-
-    for n in 0..size {
-        let twopi = 2.0 * std::f32::consts::PI;
-        let phase = twopi * n as f32 / size as f32;
-
-        wave_table.push(2.0 * (phase * (1.0 / twopi)) - 1.0 as f32)
-    }
-
-    return wave_table;
-}
-
 fn main() {
     let wave_table_size = 64;
 
-    let wave_table = sawtooth(wave_table_size);
+    let wave_table = waves::sawtooth(wave_table_size);
 
     let mut osc = WaveTableOscillator::new(44100, wave_table);
     osc.set_frequency(80.0);
